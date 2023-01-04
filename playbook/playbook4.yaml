@@ -1,0 +1,47 @@
+---
+- name: Install Apache and Upload my web Page
+  hosts: all
+  become: yes
+
+
+  vars:
+    sourse_folder: /etc/ansible/Mywebsite1
+    destin_folder: /var/www/html
+
+  tasks:
+
+  - name: Check and Print Linux ansible_os_family
+    debug:
+      var: ansible_os_family
+
+  - block:   #========Block for Ubuntu============
+
+       - name: Install Apache Web Server
+         apt: name=apache2 state=latest
+
+       - name: Start WebServer and make it enable on boot
+         service: name=apache2 state=started enabled=yes
+    when: ansible_os_family == "Debian"
+
+  - name: Generate INDEX.HTML file
+    template: src={{ sourse_folder }}/index.j2 dest={{ destin_folder }}/index.html mode=0555
+    notify:
+       - Restart Apache
+
+
+  - name: Copy MyHomePage to Servers
+    copy: src={{ item }} dest={{ destin_folder }} mode=0555
+    with_fileglob: "{{ sourse_folder }}/*.*"
+#    loop:
+#      - "index.html"
+#      - "test1.txt"
+#      - "test2.txt"
+#      - "test3.txt"
+    notify:
+       - Restart Apache
+
+
+  handlers:
+  - name: Restart Apache
+    service: name=apache2 state=restarted
+    when: ansible_os_family == "Debian"

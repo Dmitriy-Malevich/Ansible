@@ -1,0 +1,30 @@
+---
+- name: Loops Playbook
+  hosts: test_servers
+  become: yes
+  tasks:
+    - name: Say Hello to All
+      debug:
+        msg: Hello {{ item }}
+      loop:
+        - "Vasya"
+        - "Petya"
+        - "Dima"
+
+    - name: Loop Untill example
+      shell: echo -n H >> myfile.txt && cat myfile.txt
+      register: output
+      delay: 2
+      retries: 4
+      until: output.stdout.find("HHHH") == false      
+
+    - name: Print output
+      debug:
+        var: output.stdout
+
+#    - name: Install many packaged
+#      apt: name={{ item }} state=latest
+#      loop:
+#        - python
+#        - tree
+#        - mysql-client
